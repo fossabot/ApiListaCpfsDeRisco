@@ -20,7 +20,7 @@ mongoose
   });
 
 //Carrega as models
-const CpfModel = require('./models/cpf');
+const CpfModel = require('./models/cpf.model');
 
 //carregar as rotas
 const indexRoute = require('./routes/index.route');

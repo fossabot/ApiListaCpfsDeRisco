@@ -2,10 +2,11 @@
 //O jest não possibilita que eu chame uma rota para testar, por isso inclui o supertest
 const request = require('supertest')
 const app = require('../../src/app')
+const repository = require('../../src/repositories/cpf.repository');
 
 describe('AddCpf', ()=>{
 
-    it('isso deve retornar um 204',async ()=>{
+    it('Should return a 204',async ()=>{
 
         const cpf = {cpf: '44213382060'};
 
@@ -18,7 +19,7 @@ describe('AddCpf', ()=>{
     });  
 
 
-    it('isso deve retornar um InvalidCpfException',async ()=>{
+    it('Should return an InvalidCpfException',async ()=>{
 
         const cpf = {cpf: '22222222222'};
 
@@ -29,7 +30,7 @@ describe('AddCpf', ()=>{
         expect(response.body.type).toBe("InvalidCpfException");
     });
 
-    it('isso deve retornar um ExistsCpfException',async ()=>{
+    it('Should return an ExistsCpfException',async ()=>{
 
         const cpf = {cpf: '44213382060'};
 
@@ -45,7 +46,7 @@ describe('AddCpf', ()=>{
 
 describe('Check CPF', ()=>{
 
-    it("Isso deve retornar um status code 200", async ()=>{
+    it("Should return a 200", async ()=>{
     
         const response  = await request(app)
             .get(`/cpf/${'44213382060'}`)
@@ -54,7 +55,7 @@ describe('Check CPF', ()=>{
         expect(response.status).toBe(200);
     });
 
-    it("Isso deve retornar um exception InvalidCpfException", async ()=>{
+    it("Should return an InvalidCpfException", async ()=>{
     
         const cpf = '22222222222';
 
@@ -65,7 +66,7 @@ describe('Check CPF', ()=>{
         expect(response.body.type).toBe('InvalidCpfException');
     });
 
-    it("Isso deve retornar um exception NotFoundCpfException", async ()=>{
+    it("Should return an NotFoundCpfException", async ()=>{
     
         const cpf = '33777667072';
 
@@ -83,7 +84,7 @@ describe('RemoveCPF', ()=>{
 
     
 
-    it("Deve retornar um 204", async ()=>{
+    it("Should return a 204", async ()=>{
 
         const cpfBody = {cpf: '33777667072'};
 
@@ -101,7 +102,7 @@ describe('RemoveCPF', ()=>{
     });  
 
 
-    it("Deve retornar um InvalidCpfException", async ()=>{
+    it("Should return an InvalidCpfException", async ()=>{
 
         const cpf = '22222222222';
 
@@ -115,7 +116,7 @@ describe('RemoveCPF', ()=>{
     
 
     
-    it("Deve retornar um NotFoundCpfException", async ()=>{
+    it("Should return an NotFoundCpfException", async ()=>{
 
         const cpf = '33777667072';
 
@@ -129,11 +130,9 @@ describe('RemoveCPF', ()=>{
 
 });
 
-
-
 describe('FindAllCPFs', ()=>{
 
-    it("Deve retornar um 200 e um array com valores", async ()=>{
+    it("Should return a 200 and an array with values", async ()=>{
     
         var test = true;
 
@@ -148,4 +147,25 @@ describe('FindAllCPFs', ()=>{
         expect(test).toBe(true);
     });  
 
+    it("Should return a 200 and an empty array", async ()=>{
+    
+        var test = false;
+
+        await repository.deleteAllCpf();
+
+        const response  = await request(app)
+            .get('/cpf')
+            .send();
+
+        if(response.status == 200  &&
+           response.body.length == 0){
+
+            test = true;
+        }
+
+        expect(test).toBe(true);
+    });  
+
+
 });
+

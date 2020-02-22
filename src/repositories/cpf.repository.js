@@ -28,3 +28,8 @@ exports.allCpfs = async() =>{
 
     return await CpfModel.find({}, 'cpf createdAt')
 }
+
+exports.deleteAllCpf = async() =>{
+
+    return await CpfModel.remove({});
+}
