@@ -7,6 +7,6 @@ const controller = require('../controllers/cpf.controller');
 router.post("/", controller.addCpf);
 router.get("/:cpf", controller.checkCpf);
 router.delete("/:cpf", controller.removeCpf);
-router.get("/", controller.getAll);
+router.get("/", controller.findAllCPFs);
 
 module.exports = router;

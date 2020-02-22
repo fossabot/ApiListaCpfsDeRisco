@@ -1,121 +1,98 @@
 'use strict';
-
 const mongoose = require('mongoose');
 const CpfModel = mongoose.model('CpfModel');
-const cpfValid = require('../utils/cpfValid');
-//Add Cpf
-exports.addCpf = ('/', (req, res, next) => {
+const cpfIsValid = require('../utils/cpfValid');
+const repository = require('../repositories/cpf.repository');
 
-    let cpf = req.body.cpf;
-    let createdAt = new Date();
 
-    //OK - Adicionar o cpf e data de inclusão(createdAt - ISO 8601 -UTC.) na base
+exports.addCpf = ('/', async (req, res, next) => {
 
-    //TODO - Validar se o cpf é valido, se não retornar InvalidCpfException".
-    if(!cpfValid(cpf)){
+    let cpf = req.body.cpf;   
 
-        res.status(400).send({ type: "InvalidCpfException", message: "CPF is not valid."});
-        
-    }else{
+    if (!cpfIsValid(cpf)) {
 
-        var cpfModel = new CpfModel();
+        res.status(400).send({ type: "InvalidCpfException", message: "CPF is not valid." });
+    } else {
 
-        cpfModel.cpf = cpf;
-        cpfModel.createdAt = createdAt.toISOString();
-    
-        cpfModel
-            .save()
-            .then(data => {
+        try {
+
+            var data = await repository.findCpf(cpf);
+
+            if(data){
+                res.status(400).send({ type: "ExistsCpfException", message: "CPF already exists." });
+            }else{
+
+                await repository.addCpf(cpf);
                 res.status(204).send();
-            })
-            .catch(error => {
-                res.status(400).send(error);
-            })
+            }            
+
+        } catch (e) {
+            res.status(500).send(e);
+        }
+
     }
-
-    //TODO - Se o cpf já existir na base deve retornar ExistsCpfException".
-
-    
-
 
 });
 
-//Check CPF
-exports.checkCpf = ('/', (req, res, next) => {
-
-   
-    //OK - Se um CPF existir deve retornar o CPF e a data de criação (createdAt) no formato ISO 8601 - UTC.
-    //OK - Se o CPF não existir deve retornar uma exceção do tipo "NotFoundCpfException".
-    //TODO - Se o CPF for inválido deve retornar a exceção do tipo "InvalidCpfException".
+exports.checkCpf = ('/', async (req, res, next) => {
 
     const cpfParam = req.param('cpf');
 
-    if(!cpfValid(cpfParam)){
+    if (!cpfIsValid(cpfParam)) {
 
-        res.status(400).send({ type: "InvalidCpfException", message: "CPF is not valid."});
-    }else{
+        res.status(400).send({ type: "InvalidCpfException", message: "CPF is not valid." });
+    } else {
 
-        CpfModel
-        .findOne({cpf: cpfParam}, 'cpf createdAt')
-        .then(data => {
-            if(!data){
-                res.status(200).send("NotFoundCpfException");
-            }else{
+        try {
+            var data = await repository.findCpf(cpfParam);
+
+            if (!data) {
+                res.status(200).send({ type: "NotFoundCpfException", message: "CPF not found" });
+            } else {
                 res.status(200).send(data);
-            }            
-        })
-        .catch(error => {
-            res.status(200).send(error);
-        });
+            }
+
+        } catch (e) {
+            res.status(500).send(e);
+        }
     }
-
-   
-
 });
 
-//Remove CPF
-exports.removeCpf = ('/', (req, res, next) => {
+exports.removeCpf = ('/', async(req, res, next) => {
 
-    let cpfParam = req.param('cpf');
+    let cpfParam = req.param('cpf');   
 
-    //OK - remover o cpf da base
-    //TODO - Se o CPF não existir deve retornar uma exceção do tipo "NotFoundCpfException".
-    //TODO - Se o CPF for inválido deve retornar a exceção do tipo "InvalidCpfException".
+    if (!cpfIsValid(cpfParam)) {
 
-    if(!cpfValid(cpfParam)){
+        res.status(400).send({ type: "InvalidCpfException", message: "CPF is not valid." });
+    } else {
 
-        res.status(400).send({ type: "InvalidCpfException", message: "CPF is not valid."});
-    }else{
+        try {
 
-        CpfModel
-        .remove({ cpf: cpfParam })
-        .then(data => {
-            res.status(204).send();
-        })
-        .catch(error => {
-            res.status(400).send(error)
-        });
+            var data = await repository.findCpf(cpfParam);            
+            if(!data){
 
+                res.status(200).send({ type: "NotFoundCpfException", message: "CPF not found" });
+            }else{
+
+                await repository.deleteCpf(cpfParam);
+                res.status(204).send();
+            }        
+
+        } catch (e) {
+            res.status(500).send(e);
+        }
     }
-
-   
-
-
 });
 
+exports.findAllCPFs = ('/', async(req, res, next) => {
 
-//Find All CPFs
-exports.getAll = ('/', (req, res, next) => {
+    try{
 
-    //OK - 1. Se nenhum CPF existir na lista deve retornar um array vazio.
-
-    CpfModel
-        .find({}, 'cpf createdAt')
-        .then(data => {
-            res.status(200).send(data);
-        })
-        .catch({
-
-        });
+        var data = await repository.allCpfs();
+        res.status(200).send(data);
+    }catch{
+        res.status(500).send(e);       
+    }
 
 });
