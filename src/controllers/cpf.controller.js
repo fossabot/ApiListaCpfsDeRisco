@@ -2,7 +2,7 @@
 
 const mongoose = require('mongoose');
 const CpfModel = mongoose.model('CpfModel');
-
+const cpfValid = require('../utils/cpfValid');
 //Add Cpf
 exports.post = ('/', (req, res, next) => {
 
@@ -10,22 +10,32 @@ exports.post = ('/', (req, res, next) => {
     let createdAt = new Date();
 
     //OK - Adicionar o cpf e data de inclusão(createdAt - ISO 8601 -UTC.) na base
+
     //TODO - Validar se o cpf é valido, se não retornar InvalidCpfException".
+    if(!cpfValid(cpf)){
+
+        res.status(400).send({ type: "InvalidCpfException", message: "CPF is not valid."});
+        
+    }else{
+
+        var cpfModel = new CpfModel();
+
+        cpfModel.cpf = cpf;
+        cpfModel.createdAt = createdAt.toISOString();
+    
+        cpfModel
+            .save()
+            .then(data => {
+                res.status(204).send();
+            })
+            .catch(error => {
+                res.status(400).send(error);
+            })
+    }
+
     //TODO - Se o cpf já existir na base deve retornar ExistsCpfException".
 
-    var cpfModel = new CpfModel();
-
-    cpfModel.cpf = cpf;
-    cpfModel.createdAt = createdAt.toISOString();
-
-    cpfModel
-        .save()
-        .then(data => {
-            res.status(204).send();
-        })
-        .catch(error => {
-            res.status(400).send(error);
-        })
+    
 
 
 });
@@ -38,8 +48,15 @@ exports.get = ('/', (req, res, next) => {
     //OK - Se o CPF não existir deve retornar uma exceção do tipo "NotFoundCpfException".
     //TODO - Se o CPF for inválido deve retornar a exceção do tipo "InvalidCpfException".
 
+    const cpfParam = req.param('cpf');
+
+    if(!cpfValid(cpfParam)){
+
+        res.status(400).send({ type: "InvalidCpfException", message: "CPF is not valid."});
+    }
+
     CpfModel
-        .findOne({cpf: req.param('cpf')}, 'cpf createdAt')
+        .findOne({cpf: cpfParam}, 'cpf createdAt')
         .then(data => {
             if(!data){
                 res.status(200).send("NotFoundCpfException");
@@ -56,14 +73,19 @@ exports.get = ('/', (req, res, next) => {
 //Remove CPF
 exports.delete = ('/', (req, res, next) => {
 
-    let cpf = req.param('cpf');
+    let cpfParam = req.param('cpf');
 
     //OK - remover o cpf da base
     //TODO - Se o CPF não existir deve retornar uma exceção do tipo "NotFoundCpfException".
     //TODO - Se o CPF for inválido deve retornar a exceção do tipo "InvalidCpfException".
 
+    if(!cpfValid(cpfParam)){
+
+        res.status(400).send({ type: "InvalidCpfException", message: "CPF is not valid."});
+    }
+
     CpfModel
-        .remove({ cpf: req.param('cpf') })
+        .remove({ cpf: cpfParam })
         .then(data => {
             res.status(204).send();
         })

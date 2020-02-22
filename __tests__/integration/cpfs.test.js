@@ -31,9 +31,6 @@ describe('AddCpf', ()=>{
 
     it('isso deve retornar um ExistsCpfException',async ()=>{
 
-        //pra testar se o cpf já existe nesse momento eu posso colocar chamando a model direto
-        // e depois faço a chamada a rota passando o mesmo cpf
-
         const cpf = {cpf: '44213382060'};
 
         const response  = await request(app)
@@ -113,7 +110,7 @@ describe('RemoveCPF', ()=>{
             .send();
 
 
-        expect(responseRemove.body.type).toBe(204);
+        expect(responseRemove.body.type).toBe('InvalidCpfException');
     });  
     
 
