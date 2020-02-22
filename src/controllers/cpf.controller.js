@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const CpfModel = mongoose.model('CpfModel');
 const cpfValid = require('../utils/cpfValid');
 //Add Cpf
-exports.post = ('/', (req, res, next) => {
+exports.addCpf = ('/', (req, res, next) => {
 
     let cpf = req.body.cpf;
     let createdAt = new Date();
@@ -41,7 +41,7 @@ exports.post = ('/', (req, res, next) => {
 });
 
 //Check CPF
-exports.get = ('/', (req, res, next) => {
+exports.checkCpf = ('/', (req, res, next) => {
 
    
     //OK - Se um CPF existir deve retornar o CPF e a data de criação (createdAt) no formato ISO 8601 - UTC.
@@ -53,9 +53,9 @@ exports.get = ('/', (req, res, next) => {
     if(!cpfValid(cpfParam)){
 
         res.status(400).send({ type: "InvalidCpfException", message: "CPF is not valid."});
-    }
+    }else{
 
-    CpfModel
+        CpfModel
         .findOne({cpf: cpfParam}, 'cpf createdAt')
         .then(data => {
             if(!data){
@@ -67,11 +67,14 @@ exports.get = ('/', (req, res, next) => {
         .catch(error => {
             res.status(200).send(error);
         });
+    }
+
+   
 
 });
 
 //Remove CPF
-exports.delete = ('/', (req, res, next) => {
+exports.removeCpf = ('/', (req, res, next) => {
 
     let cpfParam = req.param('cpf');
 
@@ -82,9 +85,9 @@ exports.delete = ('/', (req, res, next) => {
     if(!cpfValid(cpfParam)){
 
         res.status(400).send({ type: "InvalidCpfException", message: "CPF is not valid."});
-    }
+    }else{
 
-    CpfModel
+        CpfModel
         .remove({ cpf: cpfParam })
         .then(data => {
             res.status(204).send();
@@ -92,6 +95,10 @@ exports.delete = ('/', (req, res, next) => {
         .catch(error => {
             res.status(400).send(error)
         });
+
+    }
+
+   
 
 
 });
